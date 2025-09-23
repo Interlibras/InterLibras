@@ -1,10 +1,6 @@
-#importando bibliotecas
-# 1. Mediapipe
-# 2. OpenCV
-
 import cv2
 import mediapipe as mp
-import numpy as np
+import math
 
 mp_maos = mp.solutions.hands
 mp_desenho = mp.solutions.drawing_utils
@@ -12,39 +8,131 @@ maos = mp_maos.Hands(max_num_hands=2, min_detection_confidence=0.7, min_tracking
 
 cap = cv2.VideoCapture(0)
 
-def identificar_gesto(landmarks_mao):
-    dedos_levantados = []
+def get_distance(p1, p2):
+    return math.hypot(p1.x - p2.x, p1.y - p2.y)
+
+def identificar_letra_libras(landmarks_mao, mao_rotulo):
+    dedos_estendidos_sem_polegar = []
     pontas_dedos_ids = [4, 8, 12, 16, 20]
-
-    if landmarks_mao.landmark[pontas_dedos_ids[0]].x < landmarks_mao.landmark[pontas_dedos_ids[0] - 1].x:
-        dedos_levantados.append(True)
-    else:
-        dedos_levantados.append(False)
-
+    
+    polegar_estendido_lateralmente = False
+    if mao_rotulo == "Right":
+        if landmarks_mao.landmark[pontas_dedos_ids[0]].x < landmarks_mao.landmark[pontas_dedos_ids[0] - 2].x:
+            polegar_estendido_lateralmente = True
+    elif mao_rotulo == "Left":
+        if landmarks_mao.landmark[pontas_dedos_ids[0]].x > landmarks_mao.landmark[pontas_dedos_ids[0] - 2].x:
+            polegar_estendido_lateralmente = True
+    
     for id_ponta in pontas_dedos_ids[1:]:
         if landmarks_mao.landmark[id_ponta].y < landmarks_mao.landmark[id_ponta - 2].y:
-            dedos_levantados.append(True)
+            dedos_estendidos_sem_polegar.append(True)
         else:
-            dedos_levantados.append(False)
+            dedos_estendidos_sem_polegar.append(False)
 
-    total_dedos = dedos_levantados.count(True)
+    # Corrigido: O índice do dedo mindinho é 3 na lista 'dedos_estendidos_sem_polegar'
+    is_m = not polegar_estendido_lateralmente and \
+           landmarks_mao.landmark[8].y > landmarks_mao.landmark[5].y and \
+           landmarks_mao.landmark[12].y > landmarks_mao.landmark[9].y and \
+           landmarks_mao.landmark[16].y > landmarks_mao.landmark[13].y and \
+           not dedos_estendidos_sem_polegar[3]
 
-    if all(dedos_levantados):
-        return "MAO ABERTA"
-    elif not any(dedos_levantados):
-        return "MAO FECHADA"
-    elif dedos_levantados == [True, False, False, False, False]:
-        return "JOINHA"
-    elif dedos_levantados == [False, True, True, False, False]:
-        return "PAZ E AMOR"
-    else:
-        return f"{total_dedos} DEDOS"
+    is_n = not polegar_estendido_lateralmente and \
+           landmarks_mao.landmark[8].y > landmarks_mao.landmark[5].y and \
+           landmarks_mao.landmark[12].y > landmarks_mao.landmark[9].y and \
+           landmarks_mao.landmark[16].y < landmarks_mao.landmark[13].y and \
+           not dedos_estendidos_sem_polegar[3]
+           
+    if is_m:
+        return "M"
+    if is_n:
+        return "N"
 
+    dedos_estendidos_com_polegar = [polegar_estendido_lateralmente] + dedos_estendidos_sem_polegar
+    total_dedos_estendidos = dedos_estendidos_com_polegar.count(True)
+
+    if total_dedos_estendidos == 4 and not dedos_estendidos_com_polegar[0]:
+        return "B"
+    
+    if dedos_estendidos_com_polegar == [True, False, False, False, True]:
+        return "Y"
+
+    if dedos_estendidos_com_polegar == [False, True, True, True, False]:
+        return "W"
+        
+    if dedos_estendidos_com_polegar == [True, True, False, False, False]:
+        return "L"
+
+    if dedos_estendidos_com_polegar == [False, False, False, False, True]:
+        return "I"
+
+    if dedos_estendidos_com_polegar == [False, True, True, False, False]:
+        dist_index_middle = get_distance(landmarks_mao.landmark[8], landmarks_mao.landmark[12])
+        dist_thumb_middle = get_distance(landmarks_mao.landmark[4], landmarks_mao.landmark[12])
+
+        if dist_thumb_middle < 0.07:
+             return "K"
+
+        if mao_rotulo == "Right" and landmarks_mao.landmark[8].x > landmarks_mao.landmark[12].x:
+            return "R"
+        if mao_rotulo == "Left" and landmarks_mao.landmark[8].x < landmarks_mao.landmark[12].x:
+            return "R"
+
+        if dist_index_middle > 0.07:
+            return "V"
+        else:
+            return "U"
+            
+    if all(dedos_estendidos_sem_polegar[1:]) and not dedos_estendidos_sem_polegar[0]:
+        dist_thumb_index = get_distance(landmarks_mao.landmark[4], landmarks_mao.landmark[8])
+        if dist_thumb_index < 0.07:
+            return "F"
+
+    if dedos_estendidos_com_polegar == [False, True, False, False, False]:
+        index_tip = landmarks_mao.landmark[8]
+        index_mcp = landmarks_mao.landmark[5]
+
+        if abs(index_tip.x - index_mcp.x) > abs(index_tip.y - index_mcp.y):
+            return "G"
+        
+        if index_tip.y > index_mcp.y:
+            return "Q"
+        
+        dist_thumb_middle = get_distance(landmarks_mao.landmark[4], landmarks_mao.landmark[12])
+        if dist_thumb_middle < 0.1:
+             return "D"
+        
+        if index_tip.y > landmarks_mao.landmark[6].y:
+            return "X"
+
+    if not any(dedos_estendidos_sem_polegar):
+        if polegar_estendido_lateralmente:
+            index_tip_y = landmarks_mao.landmark[8].y
+            index_mcp_y = landmarks_mao.landmark[5].y
+            if index_tip_y < index_mcp_y:
+                return "C"
+            else:
+                return "A"
+        else:
+            dist_thumb_index_knuckle = get_distance(landmarks_mao.landmark[4], landmarks_mao.landmark[5])
+            if dist_thumb_index_knuckle < 0.08:
+                return "S"
+            
+            dist_thumb_middle_knuckle = get_distance(landmarks_mao.landmark[4], landmarks_mao.landmark[9])
+            if dist_thumb_middle_knuckle < 0.08:
+                return "T"
+            
+            dist_all_fingers = get_distance(landmarks_mao.landmark[8], landmarks_mao.landmark[12]) + \
+                               get_distance(landmarks_mao.landmark[12], landmarks_mao.landmark[16])
+            if dist_all_fingers < 0.15:
+                return "O"
+            
+            return "E"
+
+    return "NAO IDENTIFICADO"
 
 while True:
     sucesso, imagem = cap.read()
     if not sucesso:
-        print("Ignorando frame vazio da câmera.")
         continue
 
     altura, largura, _ = imagem.shape
@@ -62,15 +150,16 @@ while True:
                 mp_maos.HAND_CONNECTIONS
             )
 
-            gesto = identificar_gesto(landmarks_mao)
+            mao_rotulo = resultados.multi_handedness[mao_idx].classification[0].label
+            letra = identificar_letra_libras(landmarks_mao, mao_rotulo)
 
             pulso = landmarks_mao.landmark[0]
             pos_x = int(pulso.x * largura)
             pos_y = int(pulso.y * altura)
 
-            cv2.putText(imagem, gesto, (pos_x - 50, pos_y + 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2, cv2.LINE_AA)
+            cv2.putText(imagem, letra, (pos_x - 50, pos_y - 50), cv2.FONT_HERSHEY_SIMPLEX, 1.5, (0, 0, 255), 3, cv2.LINE_AA)
 
-    cv2.imshow("Detector de Gestos", imagem)
+    cv2.imshow("Tradutor de Libras (Alfabeto)", imagem)
 
     if cv2.waitKey(5) & 0xFF == ord('q'):
         break

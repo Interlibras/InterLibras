@@ -1,0 +1,32 @@
+.sidebar {
+    width: 240px;
+    height: 100vh;
+    background-color: #111;
+    color: white;
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+}
+
+.logo {
+    font-size: 1.5rem;
+    font-weight: bold;
+    margin-bottom: 40px;
+}
+
+.menu {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.menuItem {
+    cursor: pointer;
+    padding: 10px 12px;
+    border-radius: 8px;
+    transition: background 0.2s;
+}
+
+.menuItem:hover {
+    background-color: #222;
+}

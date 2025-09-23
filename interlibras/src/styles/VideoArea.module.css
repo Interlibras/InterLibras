@@ -1,0 +1,38 @@
+.videoArea {
+    flex: 1;
+    padding: 20px;
+    background-color: #f9f9f9;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+}
+
+.videoPlayer {
+    width: 100%;
+    max-width: 800px;
+    height: 450px;
+    background: black;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.controls {
+    margin-top: 12px;
+    display: flex;
+    gap: 10px;
+}
+
+.button {
+    padding: 8px 12px;
+    border: none;
+    border-radius: 6px;
+    background-color: #0070f3;
+    color: white;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.button:hover {
+    background-color: #005bb5;
+}

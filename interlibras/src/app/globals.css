@@ -41,7 +41,6 @@ a {
   }
 }
 
-
 .container {
   display: flex;
   height: 100vh;
@@ -53,15 +52,13 @@ a {
   box-sizing: border-box;
 }
 
-/* Adicione no seu CSS global */
+/* Corrigido: só altera o background */
 .tema-claro {
-    background: #f5f5f5;
-    color: #222;
-    transition: background 0.3s, color 0.3s;
+    background: #f5f5f5 !important;
+    transition: background 0.3s;
 }
 
 .tema-escuro {
-    background: #181c24;
-    color: #f5f5f5;
-    transition: background 0.3s, color 0.3s;
+    background: #181c24 !important;
+    transition: background 0.3s;
 }

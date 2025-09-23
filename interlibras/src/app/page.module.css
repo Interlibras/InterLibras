@@ -4,7 +4,6 @@
   font-family: Arial, sans-serif;
 }
 
-/* Área principal (fora da sidebar) */
 .main {
   flex: 1;
   display: flex;

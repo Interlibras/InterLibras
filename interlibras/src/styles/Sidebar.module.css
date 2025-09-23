@@ -35,3 +35,40 @@
 .btn:hover {
     background: #0f4158;
 }
+
+.dropdown {
+    width: 100%;
+    position: relative;
+}
+
+.dropdownMenu {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 100%;
+    background: #0f4158;
+    border-radius: 6px;
+    margin-top: 4px;
+    display: flex;
+    flex-direction: column;
+    z-index: 10;
+}
+
+.dropdownItem {
+    background: transparent;
+    border: none;
+    color: white;
+    padding: 10px;
+    text-align: left;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.dropdownItem:hover {
+    background: #145a7a;
+}
+.dropdownItem:disabled {
+    background: #ccc;
+    color: #666;
+    cursor: not-allowed;
+}

@@ -128,6 +128,74 @@ def identificar_letra_libras(landmarks_mao, mao_rotulo):
             
             return "E"
 
+    # ================================
+    # LETRA H: Indicador e médio estendidos, juntos e alinhados horizontalmente
+    # ================================
+    if dedos_estendidos_com_polegar == [False, True, True, False, False]:
+        y_index = landmarks_mao.landmark[8].y
+        y_middle = landmarks_mao.landmark[12].y
+        x_index = landmarks_mao.landmark[8].x
+        x_middle = landmarks_mao.landmark[12].x
+
+        # Dedos devem estar quase na mesma altura (Y)
+        if abs(y_index - y_middle) < 0.03 and abs(x_index - x_middle) > 0.05:
+            pulso_x = landmarks_mao.landmark[0].x
+            if mao_rotulo == "Right":
+                if x_index > pulso_x + 0.05:
+                    return "H"
+            else:  # Left
+                if x_index < pulso_x - 0.05:
+                    return "H"
+
+    # ================================
+    # LETRA J: Baseado em "I" (só mindinho), mas com curvatura para baixo/lado
+    # ================================
+    if dedos_estendidos_com_polegar == [False, False, False, False, True]:
+        tip_y = landmarks_mao.landmark[20].y
+        pip_y = landmarks_mao.landmark[19].y
+        tip_x = landmarks_mao.landmark[20].x
+        pip_x = landmarks_mao.landmark[19].x
+
+        if tip_y > pip_y + 0.02:
+            return "J"
+
+        if mao_rotulo == "Right" and tip_x < pip_x - 0.03:
+            return "J"
+        if mao_rotulo == "Left" and tip_x > pip_x + 0.03:
+            return "J"
+
+    # ================================
+    # LETRA P: Indicador e médio estendidos APONTANDO PARA BAIXO, palma para baixo
+    # ================================
+    if dedos_estendidos_com_polegar == [True, True, True, False, False]:
+        index_tip = landmarks_mao.landmark[8]
+        middle_tip = landmarks_mao.landmark[12]
+        wrist = landmarks_mao.landmark[0]
+
+        if index_tip.y > landmarks_mao.landmark[5].y and middle_tip.y > landmarks_mao.landmark[9].y:
+            if wrist.y < index_tip.y - 0.1:
+                dist_thumb_index = get_distance(landmarks_mao.landmark[4], landmarks_mao.landmark[8])
+                if dist_thumb_index < 0.1:
+                    return "P"
+
+    # ================================
+    # LETRA Z: Aproximação ESTÁTICA — Indicador estendido, formando ângulo com polegar
+    # ================================
+    if dedos_estendidos_com_polegar == [True, True, False, False, False] or \
+       dedos_estendidos_com_polegar == [False, True, False, False, False]:
+
+        index_tip = landmarks_mao.landmark[8]
+        index_mcp = landmarks_mao.landmark[5]
+        thumb_tip = landmarks_mao.landmark[4]
+
+        dx = index_tip.x - index_mcp.x
+        dy = index_tip.y - index_mcp.y
+
+        if abs(dx) > 0.05 and abs(dy) > 0.05:
+            dist_thumb_to_index_side = abs(thumb_tip.x - index_mcp.x) + abs(thumb_tip.y - index_tip.y)
+            if dist_thumb_to_index_side < 0.15:
+                return "Z"
+
     return "NAO IDENTIFICADO"
 
 while True:

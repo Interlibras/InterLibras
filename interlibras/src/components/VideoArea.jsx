@@ -1,8 +1,6 @@
-// src/components/VideoArea.js
 "use client";
 import React, { useEffect, useRef } from "react";
 import styles from "../styles/VideoArea.module.css";
-
 export default function VideoArea() {
     const videoRef = useRef(null);
 
@@ -22,7 +20,13 @@ export default function VideoArea() {
 
     return (
     <div className={styles.videoContainer}>
-        <video ref={videoRef} autoPlay playsInline className={styles.video} />
+        <video
+        ref={videoRef}
+        autoPlay
+        playsInline
+        muted
+        className={styles.video}
+        />
     </div>
     );
 }

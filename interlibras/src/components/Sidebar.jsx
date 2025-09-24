@@ -1,7 +1,6 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import styles from "../styles/Sidebar.module.css";
-import logo from "../assets/logo.jpeg";
 
 export default function Sidebar() {
     const [openMenu, setOpenMenu] = useState(null);
@@ -24,7 +23,7 @@ export default function Sidebar() {
     return (
         <div className={styles.sidebar}>
             <div className={styles.logo}>
-                <img src={logo} alt="InterLibras Logo" style={{ width: "100%" }} />
+                <img src="/logo.png" alt="InterLibras Logo" style={{ width: "100%" }} />
             </div>
 
             <div className={styles.dropdown}>

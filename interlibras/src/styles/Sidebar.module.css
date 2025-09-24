@@ -1,12 +1,13 @@
 .sidebar {
     width: 15%;
-    background: #6ECCFF;
+    background: var(--sidebar-bg);
     display: flex;
     flex-direction: column;
     align-items: center;
     padding: 20px;
     border-right: 5px solid #5a4dff;
 }
+
 
 .logo {
     width: 120px;

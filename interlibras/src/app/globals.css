@@ -25,14 +25,18 @@ body {
   transition: background 0.3s;
 }
 
-/* Use body.tema-claro e body.tema-escuro para garantir prioridade */
 body.tema-claro {
-  background: #085888 !important;
+  --main-bg: #085888;
+  --main-fg: #ffffff;
+  --sidebar-bg: #6ECCFF;
 }
 
 body.tema-escuro {
-  background: #181c24 !important;
+  --main-bg: #181c24;
+  --main-fg: #e0e0e0;
+  --sidebar-bg: #0f2d4a; /* azul escuro pro sidebar */
 }
+
 
 * {
   box-sizing: border-box;

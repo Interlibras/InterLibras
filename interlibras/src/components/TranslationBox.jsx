@@ -1,13 +1,16 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import styles from "../styles/TranslationBox.module.css";
-export default function TranslationBox() {
-    const [translation, setTranslation] = useState("");
 
+export default function TranslationBox() {
+    const [translation, setTranslation] = useState("tradução das libras...");
 
     return (
-    <div className={styles.translationBox}>
-        <button className={styles.translationButton}>Tradução</button>
-    </div>
+        <div className={styles.translationBox}>
+            <div className={styles.translationLabel}>Tradução</div>
+            <div className={styles.translationArea}>
+                {translation}
+            </div>
+        </div>
     );
 }

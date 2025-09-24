@@ -11,6 +11,9 @@ cap = cv2.VideoCapture(0)
 def get_distance(p1, p2):
     return math.hypot(p1.x - p2.x, p1.y - p2.y)
 
+def get_3d_distance(p1, p2):
+    return math.sqrt((p1.x - p2.x)**2 + (p1.y - p2.y)**2 + (p1.z - p2.z)**2)
+
 def identificar_letra_libras(landmarks_mao, mao_rotulo):
     dedos_estendidos_sem_polegar = []
     pontas_dedos_ids = [4, 8, 12, 16, 20]
@@ -49,7 +52,41 @@ def identificar_letra_libras(landmarks_mao, mao_rotulo):
     dist_thumb_to_fingers = get_distance(landmarks_mao.landmark[4], landmarks_mao.landmark[8])
     normalized_o_distance = dist_thumb_to_fingers / hand_ruler_distance
 
-    if normalized_o_distance < 0.5 and not any(dedos_estendidos_sem_polegar):
+    thumb_is_over_fingers = landmarks_mao.landmark[4].y < landmarks_mao.landmark[5].y and landmarks_mao.landmark[4].y < landmarks_mao.landmark[8].y
+
+    # is hand closed
+    is_hand_closed = False
+    # is hand closed logic
+    if landmarks_mao:
+        wrist = landmarks_mao.landmark[0]
+        
+        thumb_tip = landmarks_mao.landmark[4]
+        thumb_mcp = landmarks_mao.landmark[2]
+
+        index_tip = landmarks_mao.landmark[8]
+        index_mcp = landmarks_mao.landmark[5]
+
+        middle_tip = landmarks_mao.landmark[12]
+        middle_mcp = landmarks_mao.landmark[9]
+
+        ring_tip = landmarks_mao.landmark[16]
+        ring_mcp = landmarks_mao.landmark[13]
+
+        pinky_tip = landmarks_mao.landmark[20]
+        pinky_mcp = landmarks_mao.landmark[17]
+
+        thumb_is_curled = get_3d_distance(thumb_tip, wrist) < get_3d_distance(thumb_mcp, wrist)
+        index_is_curled = get_3d_distance(index_tip, wrist) < get_3d_distance(index_mcp, wrist)
+        middle_is_curled = get_3d_distance(middle_tip, wrist) < get_3d_distance(middle_mcp, wrist)
+        ring_is_curled = get_3d_distance(ring_tip, wrist) < get_3d_distance(ring_mcp, wrist)
+        pinky_is_curled = get_3d_distance(pinky_tip, wrist) < get_3d_distance(pinky_mcp, wrist)
+
+        if thumb_is_curled and index_is_curled and middle_is_curled and ring_is_curled and pinky_is_curled:
+            is_hand_closed = True
+
+    if (normalized_o_distance < 0.5 and
+        not any(dedos_estendidos_sem_polegar) and not
+        thumb_is_over_fingers and not is_hand_closed):
         return "O"
 
     if total_dedos_estendidos == 4 and not polegar_estendido_lateralmente:

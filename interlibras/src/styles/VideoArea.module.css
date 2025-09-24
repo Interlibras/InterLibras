@@ -20,18 +20,10 @@
 }
 
 .video {
-    width: 100%;
-    max-width: 600px; /* Aumentado para 600px */
-    border-radius: 12px;
-    background: black;
+  width: 100%;
+  max-width: 700px;
+  border-radius: 12px;
+  background: rgb(0, 0, 0);
 }
-.videoContainer {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    background: black;
-    padding: 16px;
-    border-radius: 12px;
-    /* Removido width/height 100% para não ocupar tudo */
-}
+
 

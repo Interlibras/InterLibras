@@ -1,6 +1,6 @@
 .sidebar {
     width: 15%;
-    background: #5ec1f5;
+    background: #6ECCFF;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -9,11 +9,12 @@
 }
 
 .logo {
-    width: 100px;
-    height: 100px;
+    width: 120px;
+    height: 120px;
     background: #fff;
     border-radius: 50%;
     margin-bottom: 20px;
+    margin-top: 40px;   
 }
 
 .btn {
@@ -30,6 +31,7 @@
     align-items: center;
     justify-content: center;
     gap: 8px;
+    margin-top: 50px;
 }
 
 .btn:hover {
@@ -71,4 +73,11 @@
     background: #ccc;
     color: #666;
     cursor: not-allowed;
+}
+
+.logoLine {
+    width: 80%;               
+    height: 2px;               
+    background-color: #5a4dff; 
+    margin: 10px auto 20px;    
 }

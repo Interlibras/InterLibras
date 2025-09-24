@@ -1,12 +1,62 @@
 import cv2
 import mediapipe as mp
 import math
+import numpy as np
+import os
+from dtw import dtw
 
+# ================================
+# CONFIGURAÇÕES GERAIS
+# ================================
+DATA_DIR = "dataset_libras"
+MAX_FRAMES = 30
+LIMIAR_DTW = 5.0  # Ajuste conforme seus testes
+
+# ================================
+# INICIALIZAÇÃO MEDIAPIPE
+# ================================
 mp_maos = mp.solutions.hands
 mp_desenho = mp.solutions.drawing_utils
 maos = mp_maos.Hands(max_num_hands=2, min_detection_confidence=0.7, min_tracking_confidence=0.5)
 
+# ================================
+# WEBCAM
+# ================================
 cap = cv2.VideoCapture(0)
+
+# ================================
+# CARREGA DATASET DE SINAIS GRAVADOS
+# ================================
+dataset = []  # (sequencia, label)
+
+if os.path.exists(DATA_DIR):
+    for label in os.listdir(DATA_DIR):
+        label_path = os.path.join(DATA_DIR, label)
+        if os.path.isdir(label_path):
+            for arquivo in os.listdir(label_path):
+                if arquivo.endswith(".npy"):
+                    caminho = os.path.join(label_path, arquivo)
+                    sequencia = np.load(caminho)
+                    dataset.append((sequencia, label))
+    print(f"✅ Carregados {len(dataset)} sinais de {len(set(d[1] for d in dataset))} classes.")
+else:
+    print("⚠️ Nenhum dado gravado encontrado. Grave sinais primeiro com a tecla 'g'.")
+
+# ================================
+# VARIÁVEIS DE CONTROLE
+# ================================
+gravando = False
+reconhecendo = False
+buffer_gravacao = []
+buffer_reconhecimento = []
+classe_atual = ""
+ultima_palavra_reconhecida = "Aguardando..."
+ultima_distancia = ""
+ultima_letra_estatica = "N/D"
+
+# ================================
+# FUNÇÕES AUXILIARES
+# ================================
 
 def get_distance(p1, p2):
     return math.hypot(p1.x - p2.x, p1.y - p2.y)
@@ -54,24 +104,17 @@ def identificar_letra_libras(landmarks_mao, mao_rotulo):
 
     thumb_is_over_fingers = landmarks_mao.landmark[4].y < landmarks_mao.landmark[5].y and landmarks_mao.landmark[4].y < landmarks_mao.landmark[8].y
 
-    # is hand closed
     is_hand_closed = False
-    # is hand closed logic
     if landmarks_mao:
         wrist = landmarks_mao.landmark[0]
-        
         thumb_tip = landmarks_mao.landmark[4]
         thumb_mcp = landmarks_mao.landmark[2]
-
         index_tip = landmarks_mao.landmark[8]
         index_mcp = landmarks_mao.landmark[5]
-
         middle_tip = landmarks_mao.landmark[12]
         middle_mcp = landmarks_mao.landmark[9]
-
         ring_tip = landmarks_mao.landmark[16]
         ring_mcp = landmarks_mao.landmark[13]
-
         pinky_tip = landmarks_mao.landmark[20]
         pinky_mcp = landmarks_mao.landmark[17]
 
@@ -163,28 +206,23 @@ def identificar_letra_libras(landmarks_mao, mao_rotulo):
 
             return "E"
 
-    # ================================
-    # LETRA H: Indicador e médio estendidos, juntos e alinhados horizontalmente
-    # ================================
+    # LETRA H
     if dedos_estendidos_com_polegar == [False, True, True, False, False]:
         y_index = landmarks_mao.landmark[8].y
         y_middle = landmarks_mao.landmark[12].y
         x_index = landmarks_mao.landmark[8].x
         x_middle = landmarks_mao.landmark[12].x
 
-        # Dedos devem estar quase na mesma altura (Y)
         if abs(y_index - y_middle) < 0.03 and abs(x_index - x_middle) > 0.05:
             pulso_x = landmarks_mao.landmark[0].x
             if mao_rotulo == "Right":
                 if x_index > pulso_x + 0.05:
                     return "H"
-            else:  # Left
+            else:
                 if x_index < pulso_x - 0.05:
                     return "H"
 
-    # ================================
-    # LETRA J: Baseado em "I" (só mindinho), mas com curvatura para baixo/lado
-    # ================================
+    # LETRA J
     if dedos_estendidos_com_polegar == [False, False, False, False, True]:
         tip_y = landmarks_mao.landmark[20].y
         pip_y = landmarks_mao.landmark[19].y
@@ -199,9 +237,7 @@ def identificar_letra_libras(landmarks_mao, mao_rotulo):
         if mao_rotulo == "Left" and tip_x > pip_x + 0.03:
             return "J"
 
-    # ================================
-    # LETRA P: Indicador e médio estendidos APONTANDO PARA BAIXO, palma para baixo
-    # ================================
+    # LETRA P
     if dedos_estendidos_com_polegar == [True, True, True, False, False]:
         index_tip = landmarks_mao.landmark[8]
         middle_tip = landmarks_mao.landmark[12]
@@ -213,9 +249,7 @@ def identificar_letra_libras(landmarks_mao, mao_rotulo):
                 if dist_thumb_index < 0.1:
                     return "P"
 
-    # ================================
-    # LETRA Z: Aproximação ESTÁTICA — Indicador estendido, formando ângulo com polegar
-    # ================================
+    # LETRA Z
     if dedos_estendidos_com_polegar == [True, True, False, False, False] or \
        dedos_estendidos_com_polegar == [False, True, False, False, False]:
 
@@ -233,39 +267,176 @@ def identificar_letra_libras(landmarks_mao, mao_rotulo):
 
     return "NAO IDENTIFICADO"
 
+# ================================
+# LOOP PRINCIPAL
+# ================================
 while True:
     sucesso, imagem = cap.read()
     if not sucesso:
         continue
 
     altura, largura, _ = imagem.shape
-
     imagem = cv2.flip(imagem, 1)
     imagem_rgb = cv2.cvtColor(imagem, cv2.COLOR_BGR2RGB)
     resultados = maos.process(imagem_rgb)
     imagem = cv2.cvtColor(imagem_rgb, cv2.COLOR_RGB2BGR)
 
+    # Processa landmarks se detectados
     if resultados.multi_hand_landmarks:
         for mao_idx, landmarks_mao in enumerate(resultados.multi_hand_landmarks):
             mp_desenho.draw_landmarks(
                 imagem,
                 landmarks_mao,
-                mp_maos.HAND_CONNECTIONS
+                mp_maos.HAND_CONNECTIONS,
+                mp_desenho.DrawingSpec(color=(0,255,0), thickness=2, circle_radius=3),
+                mp_desenho.DrawingSpec(color=(255,0,0), thickness=2)
             )
 
+            # === RECONHECIMENTO ESTÁTICO (LETRAS) ===
             mao_rotulo = resultados.multi_handedness[mao_idx].classification[0].label
-            letra = identificar_letra_libras(landmarks_mao, mao_rotulo)
+            letra_estatica = identificar_letra_libras(landmarks_mao, mao_rotulo)
+            ultima_letra_estatica = letra_estatica
 
+            # Mostra letra estática perto da mão
             pulso = landmarks_mao.landmark[0]
             pos_x = int(pulso.x * largura)
             pos_y = int(pulso.y * altura)
+            cv2.putText(imagem, letra_estatica, (pos_x - 50, pos_y - 50),
+                        cv2.FONT_HERSHEY_SIMPLEX, 1.5, (255, 255, 0), 3, cv2.LINE_AA)
 
-            cv2.putText(imagem, letra, (pos_x - 50, pos_y - 50), cv2.FONT_HERSHEY_SIMPLEX, 1.5, (0, 0, 255), 3, cv2.LINE_AA)
+            # === EXTRAÇÃO PARA RECONHECIMENTO DINÂMICO ===
+            wrist = landmarks_mao.landmark[0]
+            frame_data = []
+            for lm in landmarks_mao.landmark:
+                frame_data.extend([
+                    lm.x - wrist.x,
+                    lm.y - wrist.y,
+                    lm.z - wrist.z
+                ])
 
-    cv2.imshow("Tradutor de Libras (Alfabeto)", imagem)
+            # Modo GRAVAÇÃO
+            if gravando:
+                buffer_gravacao.append(frame_data)
+                if len(buffer_gravacao) >= MAX_FRAMES:
+                    pasta_classe = os.path.join(DATA_DIR, classe_atual)
+                    os.makedirs(pasta_classe, exist_ok=True)
+                    nome_arquivo = f"{len(os.listdir(pasta_classe)) + 1}.npy"
+                    caminho = os.path.join(pasta_classe, nome_arquivo)
+                    np.save(caminho, np.array(buffer_gravacao))
+                    print(f"💾 Salvo: {caminho}")
+                    # Recarrega dataset
+                    dataset = []
+                    for label in os.listdir(DATA_DIR):
+                        label_path = os.path.join(DATA_DIR, label)
+                        if os.path.isdir(label_path):
+                            for arquivo in os.listdir(label_path):
+                                if arquivo.endswith(".npy"):
+                                    caminho_load = os.path.join(label_path, arquivo)
+                                    sequencia = np.load(caminho_load)
+                                    dataset.append((sequencia, label))
+                    print(f"🔁 Dataset recarregado: {len(dataset)} sinais.")
+                    gravando = False
+                    buffer_gravacao = []
 
-    if cv2.waitKey(5) & 0xFF == ord('q'):
+            # Modo RECONHECIMENTO
+            if reconhecendo:
+                buffer_reconhecimento.append(frame_data)
+                if len(buffer_reconhecimento) >= MAX_FRAMES:
+                    sequencia_atual = np.array(buffer_reconhecimento)
+
+                    melhor_distancia = float('inf')
+                    melhor_label = "NENHUM"
+
+                    for sequencia_treino, label in dataset:
+                        if sequencia_treino.shape[1] != sequencia_atual.shape[1]:
+                            continue
+                        try:
+                            distancia, _, _, _ = dtw(
+                                sequencia_treino,
+                                sequencia_atual,
+                                dist=lambda x, y: np.linalg.norm(np.array(x) - np.array(y))
+                            )
+                            if distancia < melhor_distancia:
+                                melhor_distancia = distancia
+                                melhor_label = label
+                        except Exception as e:
+                            print("Erro no DTW:", e)
+                            continue
+
+                    if melhor_distancia < LIMIAR_DTW:
+                        ultima_palavra_reconhecida = melhor_label
+                        ultima_distancia = f"{melhor_distancia:.2f}"
+                        print(f"✅ Reconhecido: {melhor_label} (dist: {melhor_distancia:.2f})")
+                    else:
+                        ultima_palavra_reconhecida = "Desconhecido"
+                        ultima_distancia = f"{melhor_distancia:.2f}"
+                        print(f"❌ Não reconhecido (dist: {melhor_distancia:.2f})")
+
+                    reconhecendo = False
+                    buffer_reconhecimento = []
+
+    # Controles por teclado
+    key = cv2.waitKey(1) & 0xFF
+
+    if key == ord('g'):
+        classe_atual = input("\n📝 Digite o nome do sinal a gravar (ex: OI, AGUA, TCHAU): ").strip()
+        if classe_atual:
+            buffer_gravacao = []
+            gravando = True
+            print(f"⏺️  Iniciando gravação de '{classe_atual}'... Faça o sinal lentamente.")
+
+    if key == ord('r'):
+        buffer_reconhecimento = []
+        reconhecendo = True
+        print("🔍 Iniciando reconhecimento... Faça o sinal.")
+
+    if key == ord('c'):
+        ultima_palavra_reconhecida = "Aguardando..."
+        ultima_distancia = ""
+
+    if key == ord('q'):
         break
 
+    # Exibe interface
+    cv2.rectangle(imagem, (10, 10), (600, 180), (50, 50, 50), -1)
+    cv2.putText(imagem, f"Letra Estática: {ultima_letra_estatica}", (20, 40),
+                cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 255), 2)
+    cv2.putText(imagem, f"Sinal Dinâmico: {ultima_palavra_reconhecida}", (20, 80),
+                cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 0) if ultima_palavra_reconhecida != "Desconhecido" and ultima_palavra_reconhecida != "Aguardando..." else (0, 0, 255), 2)
+    cv2.putText(imagem, f"Distância: {ultima_distancia}", (20, 110),
+                cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 1)
+
+    status = ""
+    if gravando:
+        status = f"GRAVANDO: {classe_atual} ({len(buffer_gravacao)}/{MAX_FRAMES})"
+        cv2.putText(imagem, status, (20, 140), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 255), 2)
+    elif reconhecendo:
+        status = f"RECONHECENDO ({len(buffer_reconhecimento)}/{MAX_FRAMES})"
+        cv2.putText(imagem, status, (20, 140), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 0), 2)
+
+    cv2.putText(imagem, "Teclas: G=Gravar sinal, R=Reconhecer sinal, C=Limpar, Q=Sair", (20, altura - 20),
+                cv2.FONT_HERSHEY_SIMPLEX, 0.5, (200, 200, 200), 1)
+
+    cv2.imshow("Tradutor Híbrido de Libras (Estático + Dinâmico)", imagem)
+
+# Libera recursos
 cap.release()
 cv2.destroyAllWindows()
+
+#==========================================
+#Execute:
+#   bash
+#   python tradutor_libras_hibrido.py
+#
+#   1
+#   python tradutor_libras_hibrido.py
+#   2 - Para soletrar → apenas mantenha as mãos em posições de letras. A letra aparecerá amarela perto da mão.
+#   3 - Para gravar um sinal com movimento:
+#   Pressione g
+#   Digite o nome (ex: OI)
+#   Faça o sinal completo (30 frames)
+#   4 - Para reconhecer:
+#   Pressione r
+#
+#   Faça o sinal → se reconhecido, aparece em verde; se não, em vermelho.
+#=========================================

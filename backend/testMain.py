@@ -22,35 +22,37 @@ def identificar_letra_libras(landmarks_mao, mao_rotulo):
     elif mao_rotulo == "Left":
         if landmarks_mao.landmark[pontas_dedos_ids[0]].x > landmarks_mao.landmark[pontas_dedos_ids[0] - 2].x:
             polegar_estendido_lateralmente = True
-    
+
     for id_ponta in pontas_dedos_ids[1:]:
         if landmarks_mao.landmark[id_ponta].y < landmarks_mao.landmark[id_ponta - 2].y:
             dedos_estendidos_sem_polegar.append(True)
         else:
             dedos_estendidos_sem_polegar.append(False)
 
-    # Corrigido: O índice do dedo mindinho é 3 na lista 'dedos_estendidos_sem_polegar'
-    is_m = not polegar_estendido_lateralmente and \
-           landmarks_mao.landmark[8].y > landmarks_mao.landmark[5].y and \
-           landmarks_mao.landmark[12].y > landmarks_mao.landmark[9].y and \
-           landmarks_mao.landmark[16].y > landmarks_mao.landmark[13].y and \
-           not dedos_estendidos_sem_polegar[3]
+    index_extended_down = landmarks_mao.landmark[8].y > landmarks_mao.landmark[7].y and landmarks_mao.landmark[7].y > landmarks_mao.landmark[6].y and landmarks_mao.landmark[6].y > landmarks_mao.landmark[5].y
+    middle_extended_down = landmarks_mao.landmark[12].y > landmarks_mao.landmark[11].y and landmarks_mao.landmark[11].y > landmarks_mao.landmark[10].y and landmarks_mao.landmark[10].y > landmarks_mao.landmark[9].y
+    ring_extended_down = landmarks_mao.landmark[16].y > landmarks_mao.landmark[15].y and landmarks_mao.landmark[15].y > landmarks_mao.landmark[14].y and landmarks_mao.landmark[14].y > landmarks_mao.landmark[13].y
+    pinky_extended_down = landmarks_mao.landmark[20].y > landmarks_mao.landmark[19].y and landmarks_mao.landmark[19].y > landmarks_mao.landmark[18].y and landmarks_mao.landmark[18].y > landmarks_mao.landmark[17].y
 
-    is_n = not polegar_estendido_lateralmente and \
-           landmarks_mao.landmark[8].y > landmarks_mao.landmark[5].y and \
-           landmarks_mao.landmark[12].y > landmarks_mao.landmark[9].y and \
-           landmarks_mao.landmark[16].y < landmarks_mao.landmark[13].y and \
-           not dedos_estendidos_sem_polegar[3]
-           
-    if is_m:
-        return "M"
-    if is_n:
-        return "N"
+    if not polegar_estendido_lateralmente:
+        thumb_tucked_for_mn = landmarks_mao.landmark[4].y > landmarks_mao.landmark[9].y and landmarks_mao.landmark[4].y > landmarks_mao.landmark[13].y
+        if thumb_tucked_for_mn:
+            if index_extended_down and middle_extended_down and ring_extended_down and pinky_extended_down:
+                return "M"
+            if index_extended_down and middle_extended_down and not ring_extended_down and not pinky_extended_down:
+                return "N"
 
     dedos_estendidos_com_polegar = [polegar_estendido_lateralmente] + dedos_estendidos_sem_polegar
     total_dedos_estendidos = dedos_estendidos_com_polegar.count(True)
 
-    if total_dedos_estendidos == 4 and not dedos_estendidos_com_polegar[0]:
+    hand_ruler_distance = get_distance(landmarks_mao.landmark[0], landmarks_mao.landmark[9])
+    dist_thumb_to_fingers = get_distance(landmarks_mao.landmark[4], landmarks_mao.landmark[8])
+    normalized_o_distance = dist_thumb_to_fingers / hand_ruler_distance
+
+    if normalized_o_distance < 0.5 and not any(dedos_estendidos_sem_polegar):
+        return "O"
+
+    if total_dedos_estendidos == 4 and not polegar_estendido_lateralmente:
         return "B"
     
     if dedos_estendidos_com_polegar == [True, False, False, False, True]:
@@ -106,26 +108,22 @@ def identificar_letra_libras(landmarks_mao, mao_rotulo):
 
     if not any(dedos_estendidos_sem_polegar):
         if polegar_estendido_lateralmente:
-            index_tip_y = landmarks_mao.landmark[8].y
-            index_mcp_y = landmarks_mao.landmark[5].y
-            if index_tip_y < index_mcp_y:
-                return "C"
-            else:
-                return "A"
+            return "A"
         else:
-            dist_thumb_index_knuckle = get_distance(landmarks_mao.landmark[4], landmarks_mao.landmark[5])
-            if dist_thumb_index_knuckle < 0.08:
-                return "S"
-            
-            dist_thumb_middle_knuckle = get_distance(landmarks_mao.landmark[4], landmarks_mao.landmark[9])
-            if dist_thumb_middle_knuckle < 0.08:
+            thumb_tip = landmarks_mao.landmark[4]
+            index_pip = landmarks_mao.landmark[6]
+            middle_pip = landmarks_mao.landmark[10]
+            index_mcp = landmarks_mao.landmark[5]
+
+            is_t = (thumb_tip.x > index_pip.x and thumb_tip.x < middle_pip.x) or \
+                   (thumb_tip.x < index_pip.x and thumb_tip.x > middle_pip.x)
+            if is_t:
                 return "T"
-            
-            dist_all_fingers = get_distance(landmarks_mao.landmark[8], landmarks_mao.landmark[12]) + \
-                               get_distance(landmarks_mao.landmark[12], landmarks_mao.landmark[16])
-            if dist_all_fingers < 0.15:
-                return "O"
-            
+
+            is_s = thumb_tip.y < index_pip.y and thumb_tip.y < middle_pip.y
+            if is_s:
+                return "S"
+
             return "E"
 
     return "NAO IDENTIFICADO"

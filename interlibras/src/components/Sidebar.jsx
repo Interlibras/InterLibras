@@ -25,6 +25,7 @@ export default function Sidebar() {
             <div className={styles.logo}>
                 <img src="/logo.png" alt="InterLibras Logo" style={{ width: "100%" }} />
             </div>
+            <div className={styles.logoLine}></div>  {/* linha fina abaixo da logo */}
 
             <div className={styles.dropdown}>
                 <button

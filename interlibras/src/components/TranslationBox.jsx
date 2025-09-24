@@ -7,8 +7,7 @@ export default function TranslationBox() {
 
     return (
     <div className={styles.translationBox}>
-        <h3>Tradução</h3>
-        <p>{translation || "Aguardando tradução..."}</p>
+       <button className={styles.translationButton}>Tradução</button>
     </div>
     );
 }

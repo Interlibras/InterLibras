@@ -1,6 +1,7 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import styles from "../styles/Sidebar.module.css";
+import Image from "next/image";
 
 export default function Sidebar() {
     const [openMenu, setOpenMenu] = useState(null);

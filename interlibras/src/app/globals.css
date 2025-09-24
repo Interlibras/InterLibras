@@ -22,6 +22,16 @@ body {
   font-family: Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  transition: background 0.3s;
+}
+
+/* Use body.tema-claro e body.tema-escuro para garantir prioridade */
+body.tema-claro {
+  background: #085888 !important;
+}
+
+body.tema-escuro {
+  background: #181c24 !important;
 }
 
 * {
@@ -50,15 +60,4 @@ a {
   border-right: 5px solid #5a4dff;
   border-bottom: 5px solid #5a4dff;
   box-sizing: border-box;
-}
-
-/* Corrigido: só altera o background */
-.tema-claro {
-    background: #f5f5f5 !important;
-    transition: background 0.3s;
-}
-
-.tema-escuro {
-    background: #181c24 !important;
-    transition: background 0.3s;
 }

@@ -7,7 +7,7 @@ export default function TranslationBox() {
 
     return (
     <div className={styles.translationBox}>
-       <button className={styles.translationButton}>Tradução</button>
+        <button className={styles.translationButton}>Tradução</button>
     </div>
     );
 }

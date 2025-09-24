@@ -26,16 +26,16 @@ export default function VideoArea() {
         }
         enableCamera();
     }, []);
-
     return (
-        <div className={styles.videoContainer}>
-            <video
-                ref={videoRef}
-                autoPlay
-                playsInline
-                muted
-                className={styles.video}
-            />
-        </div>
-    );
+    <div className={styles.videoContainer}>
+    <video
+        ref={videoRef}
+        autoPlay
+        playsInline
+        muted
+        className={styles.video}
+    />
+    </div>
+);
+
 }

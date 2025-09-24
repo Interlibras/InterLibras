@@ -7,11 +7,11 @@
 .main {
   flex: 1;
   display: flex;
-  flex-direction: column;  
-  align-items: center;     
-  justify-content: flex-start; 
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
   padding: 20px;
   background: #085888;
-  gap: 80px;
-  padding-top: 220px; 
+  gap: 40px;
+  padding-top: 70px;
 }

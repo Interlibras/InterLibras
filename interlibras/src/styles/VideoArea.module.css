@@ -1,29 +1,23 @@
 .main {
     flex: 1;
-    background: #0b3f63;
+    background: #000000;
     padding: 20px;
     display: flex;
     flex-direction: column;
 }
 
-.videoBox {
-    flex: 1;
-    background: #fff;
-    border-radius: 6px;
-    margin-left: 40px;
-    margin-right: 40px;
-    margin-bottom: 30px;
-    margin-top: 30px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+.videoContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 100%;
 }
 
 .video {
-  width: 100%;
-  max-width: 700px;
+  width: 1000px; /* tamanho fixo grande */
+  max-width: 90%; /* garante responsividade */
   border-radius: 12px;
-  background: rgb(0, 0, 0);
+  background: #000;
 }
-
 

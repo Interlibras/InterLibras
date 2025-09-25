@@ -71,6 +71,10 @@ async def process_video_frame(data: VideoFrame):
         print(f"Erro: {e}")
         return {"status": "erro", "mensagem": str(e)}
 
+@app.get("/teste")
+def get_teste():
+    return {"mensagem": "by the way"}
+
 @app.get("/")
 def read_root():
     return {"Mensagem":"Servidor online"}

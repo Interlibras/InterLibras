@@ -22,7 +22,35 @@ maos = mp_maos.Hands(max_num_hands=2, min_detection_confidence=0.7, min_tracking
 # ================================
 # WEBCAM
 # ================================
-cap = cv2.VideoCapture(0)
+cap = cv2.VideoCapture(1)
+
+#procura cameras disponiveis:
+def list_cameras():
+    index = 1
+    arr = []
+    while True:
+        cap = cv2.VideoCapture(index)
+        if not cap.read()[0]:
+            break
+        else:
+            arr.append(index)
+        cap.release()
+        index += 1
+    return arr
+
+print("Câmeras detectadas:", list_cameras())
+
+# Substitua pelo IP e porta do seu celular (veja no app do Oriun/DroidCam)
+url = "http://192.168.0.10:4747/video"  # <-- ajustavel
+cap = cv2.VideoCapture(url)
+
+if cap.isOpened():
+    ret, frame = cap.read()
+    if ret:
+        cv2.imshow('Câmera do celular', frame)
+        cv2.waitKey(0)
+else:
+    print("Não foi possível conectar à câmera via rede.")
 
 # ================================
 # CARREGA DATASET DE SINAIS GRAVADOS

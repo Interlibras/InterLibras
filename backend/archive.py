@@ -248,14 +248,10 @@ def identificar_letra_libras(landmarks_mao, mao_rotulo):
         else:
             return "U"
             
-    three_fingers_up = dedos_estendidos_sem_polegar[1] and dedos_estendidos_sem_polegar[2] and dedos_estendidos_sem_polegar[3]
-    if mao_rotulo == "Right": 
-        thumb_left_index = thumb_pip.x < index_tip.x
-    else:
-        thumb_left_index = thumb_pip.x > index_tip.x
-
-    if three_fingers_up and thumb_left_index and not dedos_estendidos_sem_polegar[0]:
-        return "F"
+    if all(dedos_estendidos_sem_polegar[1:]) and not dedos_estendidos_sem_polegar[0]:
+        dist_thumb_index = get_distance(thumb_tip, index_tip)
+        if dist_thumb_index < 0.07:
+            return "F"
 
     if dedos_estendidos_com_polegar == [False, True, False, False, False]:
         dist_thumb_middle = get_distance(middle_tip, thumb_tip)
@@ -276,8 +272,13 @@ def identificar_letra_libras(landmarks_mao, mao_rotulo):
             if is_upright and is_facing_forward:
                 return "A"
         else:
-            thumb_is_between_fingers = (thumb_tip.x > index_mcp.x)
-            thumb_is_tucked = thumb_tip.y > index_pip.y
+            thumb_is_between_fingers = (thumb_tip.x > index_pip.x and thumb_tip.x < middle_pip.x) or \
+                                       (thumb_tip.x < index_pip.x and thumb_tip.x > middle_pip.x)
+            thumb_knuckle_is_visible = thumb_pip.y < index_pip.y
+            index_is_curled = index_tip.y > index_pip.y
+            
+            if thumb_is_between_fingers and thumb_knuckle_is_visible and index_is_curled:
+                return "T"
 
             thumb_is_over_fingers = thumb_tip.y < index_pip.y + (0.02 / hand_ruler_distance if hand_ruler_distance > 0 else 0)
             if thumb_is_over_fingers and index_curled_tight:
@@ -289,15 +290,6 @@ def identificar_letra_libras(landmarks_mao, mao_rotulo):
                                       pinky_tip.y > pinky_pip.y)
             if all_fingers_are_curled:
                 return "E"
-
-    three_fingers_up = dedos_estendidos_sem_polegar[1] and dedos_estendidos_sem_polegar[2] and dedos_estendidos_sem_polegar[3]
-    if mao_rotulo == "Right": 
-        thumb_left_index = thumb_pip.x > index_tip.x
-    else:
-        thumb_left_index = thumb_pip.x < index_tip.x
-
-    if three_fingers_up and thumb_left_index and not dedos_estendidos_sem_polegar[0]:
-        return "T"
 
     if dedos_estendidos_com_polegar == [False, True, True, False, False]:
         if abs(y_index - y_middle) < 0.03 and abs(x_index - x_middle) > 0.05:

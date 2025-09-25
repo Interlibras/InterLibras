@@ -1,17 +1,22 @@
 # main.py
 
+# Importa a função que criamos no outro arquivo
+from analyse import processar_imagem
+
 import base64
 import io
-import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from PIL import Image
-from datetime import datetime
+import numpy as np
+import cv2
 
-# diretório para salvar os frames que são recebidos
-if not os.path.exists("output_frames"):
-    os.makedirs("output_frames")
+# ================================
+# API E VARIÁVEIS GLOBAIS
+# ================================
+
+current_result = "Aguardando..."
 
 # fastapi é tipo o express
 app = FastAPI()
@@ -29,40 +34,55 @@ app.add_middleware(
 class VideoFrame(BaseModel):
     frame: str
 
+# ================================
+# ENDPOINTS
+# ================================
+
 # endpoint para o envio do video da câmera do usuário
 @app.post("/frame")
 async def process_video_frame(data: VideoFrame):
     """
-    Recebe um frame em base64 e o salva
+    Recebe um frame em base64, o processa para identificar o sinal,
+    e armazena o resultado.
     """
+    global current_result
     try:
+        # Decodifica a imagem base64 recebida do frontend
         header, encoded = data.frame.split(",", 1)
-        dados_imagem = base64.b64decode(encoded)
+        image_data = base64.b64decode(encoded)
+        
+        # Converte os dados da imagem para um formato que o OpenCV entende
+        pil_image = Image.open(io.BytesIO(image_data))
+        image_np = np.array(pil_image)
+        # Converte de RGB (padrão do PIL) para BGR (padrão do OpenCV)
+        image_cv2 = cv2.cvtColor(image_np, cv2.COLOR_RGB2BGR)
 
-        imagem = Image.open(io.BytesIO(dados_imagem))
-
-        timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S_%f")
-        caminho_do_arquivo = f"output_frames/frame_{timestamp}.png"
-        imagem.save(caminho_do_arquivo, "PNG")
-
-        print(f"Frame salvo em {caminho_do_arquivo}")
+        # Chama a função de processamento do outro arquivo
+        result = processar_imagem(image_cv2)
+        
+        # Atualiza a variável global com o resultado
+        current_result = result
+        print(f"Frame processado. Resultado: {current_result}")
 
         return {
             "status": "Sucesso",
-            "mensagem": f"Frame salvo em {caminho_do_arquivo}",
-            "tamanho_imagem": imagem.size,
+            "detected_sign": current_result,
         }
 
     except Exception as e:
         print(f"Erro: {e}")
+        current_result = "Erro no processamento"
         return {"status": "erro", "mensagem": str(e)}
 
-# endpoint de tradução (mock)
+# endpoint de tradução
 @app.get("/translate")
 def get_translation():
-    return {"translation": "By the way"}
+    """
+    Retorna o último resultado da tradução que foi armazenado.
+    """
+    return {"translation": current_result}
 
 # endpoint raiz
 @app.get("/")
 def read_root():
-    return {"Mensagem": "Servidor online"}
+    return {"Mensagem": "Servidor online. Envie frames para /frame e obtenha resultados em /translate."}

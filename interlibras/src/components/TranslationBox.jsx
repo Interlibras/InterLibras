@@ -20,8 +20,7 @@ export default function TranslationBox() {
             }
         };
 
-        // Buscar a cada 2 segundos (pode ajustar o intervalo)
-        const interval = setInterval(fetchTranslation, 2000);
+        const interval = setInterval(fetchTranslation, 100);
 
         return () => clearInterval(interval);
     }, []);

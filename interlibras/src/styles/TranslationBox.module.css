@@ -1,30 +1,75 @@
+
 .translationBox {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 12px;
-  width: 100%;
-  max-width: 800px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+    width: 100%;
+    max-width: 800px;
+    padding: 20px;
+    box-sizing: border-box;
+    transition: transform 0.3s ease, box-shadow 0.3s ease; 
+}
+
+.translationBox:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
 }
 
 .translationLabel {
-  background: #5a4dff;
-  color: white;
-  padding: 8px 20px;
-  border-radius: 8px;
-  font-size: 20px;
-  font-weight: bold;
-  text-align: center;
+    background: #5a4dff;
+    color: white;
+    padding: 12px 25px;
+    border-radius: 8px;
+    font-size: 24px;
+    font-weight: bold;
+    text-align: center;
+    width: fit-content;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    transition: background 0.3s ease, transform 0.3s ease;
+}
+
+.translationLabel:hover {
+    background: #4c39c2;
+    transform: translateY(-3px);
 }
 
 .translationArea {
-  background: white;
-  border-radius: 10px;
-  padding: 15px;
-  min-height: 300px;
-  width: 190%;
-  text-align: center;
-  font-size: 16px;
-  color: #333;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    min-height: 300px;
+    width: 100%;
+    max-width: 700px;
+    text-align: center;
+    font-size: 18px;
+    color: #333;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    overflow-y: auto;
+    resize: vertical;
+    transition: box-shadow 0.3s ease, transform 0.2s ease;
+}
+
+.translationArea:focus {
+    outline: none; 
+    box-shadow: 0 0 8px rgba(90, 77, 255, 0.7); 
+    transform: translateY(-2px); 
+}
+
+@media (max-width: 768px) {
+    .translationBox {
+        padding: 15px;
+        gap: 15px;
+    }
+
+    .translationLabel {
+        font-size: 20px;
+        padding: 10px 20px;
+    }
+
+    .translationArea {
+        font-size: 16px;
+        min-height: 250px;
+        padding: 15px;
+    }
 }

@@ -19,19 +19,20 @@
 .translationLabel {
     background: #5a4dff;
     color: white;
-    padding: 12px 25px;
+    padding: 6px 14px;   /* reduzido para botão menor */
     border-radius: 8px;
-    font-size: 24px;
+    font-size: 18px;     /* texto menor */
     font-weight: bold;
     text-align: center;
     width: fit-content;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1); /* sombra mais leve */
     transition: background 0.3s ease, transform 0.3s ease;
+    cursor: pointer;     /* indica que é clicável */
 }
 
 .translationLabel:hover {
     background: #4c39c2;
-    transform: translateY(-3px);
+    transform: translateY(-2px);
 }
 
 .translationArea {
@@ -63,8 +64,8 @@
     }
 
     .translationLabel {
-        font-size: 20px;
-        padding: 10px 20px;
+        font-size: 16px;  /* menor no mobile */
+        padding: 5px 12px; /* reduz ainda mais no mobile */
     }
 
     .translationArea {

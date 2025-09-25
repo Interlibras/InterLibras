@@ -1,7 +1,6 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import styles from "../styles/Sidebar.module.css";
-import Image from "next/image";
 
 export default function Sidebar() {
     const [openMenu, setOpenMenu] = useState(null);
@@ -26,33 +25,36 @@ export default function Sidebar() {
             <div className={styles.logo}>
                 <img src="/logo.png" alt="InterLibras Logo" style={{ width: "100%" }} />
             </div>
-            <div className={styles.logoLine}></div>  {/* linha fina abaixo da logo */}
+            <div className={styles.logoLine}></div> {/*Linnha fina embaixo */}
 
-            <div className={styles.dropdown}>
+            {/* Dropdown Config */}
+            <div
+                className={`${styles.dropdown} ${openMenu === "config" ? styles.open : ""}`}
+            >
                 <button
                     className={styles.btn}
-                    onClick={() => setOpenMenu(openMenu === "config" ? null : "config")}
+                    onClick={() =>
+                        setOpenMenu(openMenu === "config" ? null : "config")
+                    }
                 >
                     Config
                 </button>
-                {openMenu === "config" && (
-                    <div className={styles.dropdownMenu}>
-                        <button
-                            className={styles.dropdownItem}
-                            onClick={handleTemaClaro}
-                            disabled={tema === "claro"}
-                        >
-                            Tema Claro
-                        </button>
-                        <button
-                            className={styles.dropdownItem}
-                            onClick={handleTemaEscuro}
-                            disabled={tema === "escuro"}
-                        >
-                            Tema Escuro
-                        </button>
-                    </div>
-                )}
+                <div className={styles.dropdownMenu}>
+                    <button
+                        className={styles.dropdownItem}
+                        onClick={handleTemaClaro}
+                        disabled={tema === "claro"}
+                    >
+                        Tema Claro
+                    </button>
+                    <button
+                        className={styles.dropdownItem}
+                        onClick={handleTemaEscuro}
+                        disabled={tema === "escuro"}
+                    >
+                        Tema Escuro
+                    </button>
+                </div>
             </div>
         </div>
     );

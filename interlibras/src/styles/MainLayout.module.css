@@ -1,0 +1,20 @@
+.wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 20px;
+
+  width: 100%;
+  max-width: 1200px; /* cap total */
+  margin: 0 auto;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+@media (max-width: 900px) {
+  .wrapper {
+    flex-direction: column; /* em telas menores, fica um embaixo do outro */
+    align-items: center;
+  }
+}
+

@@ -5,6 +5,9 @@ import mediapipe as mp
 import math
 import numpy as np
 
+
+
+
 # ================================
 # INICIALIZAÇÃO MEDIAPIPE
 # ================================
@@ -21,10 +24,19 @@ def get_distance(p1, p2):
 def get_3d_distance(p1, p2):
     return math.sqrt((p1.x - p2.x)**2 + (p1.y - p2.y)**2 + (p1.z - p2.z)**2)
 
-def identificar_letra_libras(landmarks_mao, mao_rotulo):
-    #variaveis
-    pontas_dedos_ids = [4, 8, 12, 16, 20]
 
+# ================================
+# FUNÇÂO DE DETECÇÂO PRINCIPAL
+# Essa função é a principal função do código e detecta todas as letra estáticas de libras
+# ================================
+
+def identificar_letra_libras(landmarks_mao, mao_rotulo):
+    """
+    detecta letras libras estáticas 
+    """
+    #variaveis (não todas pois o código está meio bagunçado)
+    pontas_dedos_ids = [4, 8, 12, 16, 20]
+    # https://chuoling.github.io/mediapipe/images/mobile/hand_landmarks.png
     wrist = landmarks_mao.landmark[0]
     thumb_mcp = landmarks_mao.landmark[2]
     thumb_pip = landmarks_mao.landmark[3]
@@ -107,9 +119,10 @@ def identificar_letra_libras(landmarks_mao, mao_rotulo):
 
     thumb_is_curved = thumb_tip.y > thumb_pip.y and thumb_tip.x < thumb_pip.x if mao_rotulo == 'Right' else thumb_tip.x > thumb_pip.x
 
+    hand_ruler_distance = get_distance(wrist, middle_mcp)
     knuckles_x_span = abs(index_mcp.x - pinky_mcp.x)
-    middle_mcp_wrist_distance = get_distance(middle_mcp, wrist)
-    is_sideways = (knuckles_x_span / middle_mcp_wrist_distance) < 0.35 if middle_mcp_wrist_distance > 0 else False
+    hand_aspect_ratio = knuckles_x_span / hand_ruler_distance if hand_ruler_distance > 0 else 0
+    is_sideways = hand_aspect_ratio < 0.35
 
     no_fingers_extended = not any(dedos_estendidos_sem_polegar)
 
@@ -122,6 +135,7 @@ def identificar_letra_libras(landmarks_mao, mao_rotulo):
 
     hand_is_upside_down = middle_mcp.y > wrist.y
     #variaveis fim
+    # =========================
 
     if hand_is_upside_down:
         index_points_down = index_tip.y > index_pip.y
@@ -173,10 +187,10 @@ def identificar_letra_libras(landmarks_mao, mao_rotulo):
     if dedos_estendidos_com_polegar == [False, True, True, True, False]:
         return "W"
     
-    if dedos_estendidos_com_polegar == [True, True, False, False, False] and normalized_thumb_dist > 0.4 and not is_sideways:
+    if dedos_estendidos_com_polegar == [True, True, False, False, False] and normalized_thumb_dist > 0.42 and not is_sideways and not is_hand_upside_down:
         return "L"
 
-    if dedos_estendidos_com_polegar == [True, True, False, False, False] and normalized_thumb_dist < 0.4 and not is_sideways and not is_hand_upside_down:
+    if dedos_estendidos_com_polegar == [True, True, False, False, False] and normalized_thumb_dist < 0.42 and not is_sideways and not is_hand_upside_down:
         return "G"
 
     is_only_pinky_up = (dedos_estendidos_sem_polegar == [False, False, False, True])
@@ -285,6 +299,20 @@ def identificar_letra_libras(landmarks_mao, mao_rotulo):
 
     return "NAO IDENTIFICADO"
 
+# ================================
+# FUNÇÂO DE MELHORIA DA IMAGEM PARA MELHORAR IDENTIFICAÇÂO
+# ================================
+def enhance_image(image_np):
+    """
+    Melhora a imagem
+    """
+
+    alpha = 1.2  # aumenta contraste em 20%
+    beta = 10    # aumenta a luminosidade em 10 (de 0 a 255, aumenta o valor do pixel em 10)
+    
+    enhanced_image = cv2.convertScaleAbs(image_np, alpha=alpha, beta=beta)
+    return enhanced_image
+
 
 # ================================
 # FUNÇÃO PRINCIPAL DE PROCESSAMENTO
@@ -295,6 +323,7 @@ def processar_imagem(image_np):
     100% estático por enquanto :skull_emoji:
     """
     # Ajusta a imagem
+    image_np = enhance_image(image_np)
     imagem_flip = cv2.flip(image_np, 1)
     imagem_rgb = cv2.cvtColor(imagem_flip, cv2.COLOR_BGR2RGB)
     resultados = maos.process(imagem_rgb)

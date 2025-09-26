@@ -1,7 +1,6 @@
 import React from "react";
 import Sidebar from "../components/Sidebar";
-import VideoArea from "../components/VideoArea";
-import TranslationBox from "../components/TranslationBox";
+import MainLayout from "@/components/MainLayout";
 import styles from "./page.module.css";
 
 export default function Home() {
@@ -10,8 +9,7 @@ export default function Home() {
       <Sidebar />
 
       <main className={styles.main}>
-        <VideoArea />
-        <TranslationBox />
+        <MainLayout/>
       </main>
     </div>
   );

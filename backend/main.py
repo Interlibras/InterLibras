@@ -16,6 +16,12 @@ import cv2
 # API E VARIÁVEIS GLOBAIS
 # ================================
 
+frames_since_detection = 0
+
+# em frames
+leniencia_falha = 15
+resultados_de_falha = {"NAO IDENTIFICADO", "Nenhuma mao detectada"}
+
 current_result = "Aguardando..."
 
 # fastapi é tipo o express

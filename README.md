@@ -13,3 +13,4 @@ A aplicação captura **sinais em Libras** através da câmera do dispositivo e 
 - **Interface intuitiva**: Design simples e adaptado para diferentes dispositivos.
 
 ---
+![2025-09-26-04-09-25](https://github.com/user-attachments/assets/0660a831-1227-4a4a-b017-7c992691d5d7)

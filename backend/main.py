@@ -16,11 +16,10 @@ import cv2
 # API E VARIÁVEIS GLOBAIS
 # ================================
 
+#variavels para impedir que 
 frames_since_detection = 0
-
-# em frames
-leniencia_falha = 15
-resultados_de_falha = {"NAO IDENTIFICADO", "Nenhuma mao detectada"}
+leniencia_frames_falha = 6
+resultados_de_falha = {"NAO IDENTIFICADO", "NENHUMA MÃO DETECTADA"}
 
 current_result = "Aguardando..."
 
@@ -51,7 +50,7 @@ async def process_video_frame(data: VideoFrame):
     Recebe um frame em base64, o processa para identificar o sinal,
     e armazena o resultado.
     """
-    global current_result
+    global current_result, frames_since_detection
     try:
         # Decodifica a imagem base64 recebida do frontend
         header, encoded = data.frame.split(",", 1)
@@ -67,7 +66,17 @@ async def process_video_frame(data: VideoFrame):
         result = processar_imagem(image_cv2)
         
         # Atualiza a variável global com o resultado
-        current_result = result
+        if result in resultados_de_falha:
+            if frames_since_detection < leniencia_frames_falha:
+                frames_since_detection += 1
+            else:
+                current_result = result
+        else:
+            if frames_since_detection < leniencia_frames_falha / 3:
+                frames_since_detection += 1
+            else:
+                frames_since_detection = 0
+                current_result = result
         print(f"Frame processado. Resultado: {current_result}")
 
         return {

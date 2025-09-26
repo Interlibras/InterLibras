@@ -270,33 +270,6 @@ def identificar_letra_libras(landmarks_mao, mao_rotulo):
     if three_fingers_up and thumb_left_index and not dedos_estendidos_sem_polegar[0]:
         return "T"
 
-    if dedos_estendidos_com_polegar == [False, True, True, False, False]:
-        if abs(y_index - y_middle) < 0.03 and abs(x_index - x_middle) > 0.05:
-            if mao_rotulo == "Right":
-                if x_index > pulso_x + 0.05:
-                    return "H"
-            else:
-                if x_index < pulso_x - 0.05:
-                    return "H"
-
-    if dedos_estendidos_com_polegar == [False, False, False, False, True]:
-        if pinky_tip_y > pinky_pip_y + 0.02:
-            return "J"
-        if mao_rotulo == "Right" and pinky_tip_x < pinky_pip_x - 0.03:
-            return "J"
-        if mao_rotulo == "Left" and pinky_tip_x > pinky_pip_x + 0.03:
-            return "J"
-
-    if dedos_estendidos_com_polegar == [True, True, False, False, False] or \
-       dedos_estendidos_com_polegar == [False, True, False, False, False]:
-        dx = x_index - index_mcp.x
-        dy = y_index - index_mcp.y
-
-        if abs(dx) > 0.05 and abs(dy) > 0.05:
-            dist_thumb_to_index_side = abs(thumb_tip.x - index_mcp.x) + abs(thumb_tip.y - y_index)
-            if dist_thumb_to_index_side < 0.15:
-                return "Z"
-
     return "NAO IDENTIFICADO"
 
 # ================================
@@ -328,7 +301,7 @@ def processar_imagem(image_np):
     imagem_rgb = cv2.cvtColor(imagem_flip, cv2.COLOR_BGR2RGB)
     resultados = maos.process(imagem_rgb)
 
-    letra_identificada = "Nenhuma mao detectada"
+    letra_identificada = "NENHUMA MÃO DETECTADA"
 
     if resultados.multi_hand_landmarks:
         # Pega a primeira mão detectada (para alguns sinais seriam necessárias duas mãos mas por enquanto não faremos isso (provavelemnte não dara tempo no geral))
